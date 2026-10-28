@@ -1,0 +1,330 @@
+# Agenda Campus — API REST e interface web
+
+![Página inicial do Agenda Campus com a lista de eventos](docs/imagens/pagina-inicial.png)
+
+## Sumário
+
+1. [Sobre o projeto](#sobre-o-projeto)
+2. [Requisitos atendidos](#requisitos-atendidos)
+3. [Vídeo de demonstração](#vídeo-de-demonstração)
+4. [Como executar](#como-executar)
+5. [Prints](#prints)
+6. [Tecnologias](#tecnologias)
+7. [Arquitetura e estrutura](#arquitetura-e-estrutura)
+8. [Diagrama do banco de dados](#diagrama-do-banco-de-dados)
+9. [Endpoints](#endpoints)
+10. [Regras de negócio](#regras-de-negócio)
+
+## Sobre o projeto
+
+O Agenda Campus é uma API REST com interface web para gerenciar eventos
+acadêmicos (palestras, oficinas, minicursos e encontros), os participantes e as
+inscrições, com controle de vagas e prazos de inscrição.
+
+- **Eventos:** cadastro, edição e exclusão, com nome, local, descrição, data de
+  início, prazo de inscrição e capacidade. A lista tem busca por nome e local,
+  filtro por período, filtro de eventos com vagas e ordenação.
+- **Participantes:** cadastro com e-mail único, edição, exclusão e busca por
+  nome ou e-mail.
+- **Inscrições:** inscrição de participantes em eventos, cancelamento (que libera
+  a vaga), reativação e exclusão de inscrições canceladas.
+- **Controle de vagas:** as vagas disponíveis são calculadas a partir das
+  inscrições confirmadas, e inscrições simultâneas nunca ultrapassam a capacidade.
+- **Documentação interativa** da API com Swagger UI.
+
+## Requisitos atendidos
+
+| Requisito | Como o projeto atende |
+|---|---|
+| API REST com Spring Boot | Spring Boot 4.1, com controllers REST para os três recursos |
+| Mínimo de 2 tabelas relacionadas | 3 tabelas: `eventos` e `participantes`, ligadas por `inscricoes` em um relacionamento N:N ([diagrama](#diagrama-do-banco-de-dados)) |
+| CRUD completo | Criar, listar, buscar por ID, atualizar e excluir em eventos, participantes e inscrições ([endpoints](#endpoints)) |
+| Filtragem de dados | Filtros combináveis nas três listagens, com paginação e ordenação ([filtros](#filtros-paginação-e-ordenação)) |
+| Regras de negócio com maior complexidade | Controle de vagas, prazos, cancelamento e reativação, datas bloqueadas após o início e proteção contra inscrições simultâneas ([regras](#regras-de-negócio)) |
+| Status HTTP e exceções | Códigos adequados para cada situação e erros tratados em um único ponto, no padrão ProblemDetail ([status e erros](#status-http-e-tratamento-de-erros)) |
+| Documentação com Swagger | springdoc-openapi, com descrição e possíveis erros de cada endpoint em `/swagger-ui/index.html` |
+| **Ponto extra:** telas conectadas ao backend | Interface web em HTML, CSS e JavaScript que consome a API ([prints](#prints)) |
+
+## Vídeo de demonstração
+
+**[Assistir ao vídeo de demonstração](COLE_AQUI_O_LINK_DO_VIDEO)**
+
+## Como executar
+
+### Pré-requisitos
+
+- **JDK 25** (`java -version` deve indicar 25)
+- **PostgreSQL** em execução (versão 13 ou superior recomendada)
+- Não é necessário instalar o Maven: use o wrapper `mvnw` / `mvnw.cmd`
+
+### 1. Criar o banco
+
+Crie um banco vazio chamado `eventos_db`. As tabelas são criadas automaticamente
+pelo Flyway na primeira execução.
+
+```sql
+CREATE DATABASE eventos_db;
+```
+
+### 2. Configurar a conexão
+
+A aplicação lê a conexão de variáveis de ambiente:
+
+| Variável | Padrão |
+|---|---|
+| `DB_URL` | `jdbc:postgresql://localhost:5432/eventos_db` |
+| `DB_USERNAME` | `postgres` |
+| `DB_PASSWORD` | `root` |
+
+Defina apenas as que forem diferentes do padrão.
+
+### 3. Iniciar a aplicação
+
+Na raiz do projeto:
+
+**Windows (PowerShell)**
+
+```powershell
+$env:DB_PASSWORD = 'senha do seu PostgreSQL'
+.\mvnw spring-boot:run
+```
+
+**Linux / macOS**
+
+```bash
+DB_PASSWORD='senha do seu PostgreSQL' ./mvnw spring-boot:run
+```
+
+**IntelliJ IDEA:** execute a classe `AgendaCampusApplication`, adicionando
+`DB_PASSWORD` (e as demais variáveis, se necessário) nas variáveis de ambiente
+da configuração de execução.
+
+### 4. Acessar
+
+| Recurso | Endereço |
+|---|---|
+| Interface web | http://localhost:8080/ |
+| Swagger UI | http://localhost:8080/swagger-ui/index.html |
+
+## Prints
+
+### Detalhes do evento
+
+![Detalhes de um evento lotado, com a lista de participantes inscritos](docs/imagens/evento-detalhes.png)
+
+### Cadastro e edição de evento
+
+![Formulário de edição de evento](docs/imagens/evento-edicao.png)
+
+### Participantes
+
+![Lista de participantes com o formulário de cadastro](docs/imagens/participantes.png)
+
+### Inscrições
+
+![Lista de inscrições confirmadas e canceladas](docs/imagens/inscricoes.png)
+
+### Swagger UI
+
+![Swagger UI com os endpoints de inscrições, participantes e eventos](docs/imagens/swagger.png)
+
+## Tecnologias
+
+| Camada | Tecnologia |
+|---|---|
+| Linguagem | Java 25 |
+| Framework | Spring Boot 4.1 (Web MVC, Data JPA, Validation) |
+| Banco de dados | PostgreSQL |
+| Migrações | Flyway |
+| Documentação | springdoc-openapi 3.1 (Swagger UI) |
+| Interface web | HTML, CSS e JavaScript puros, servidos pelo próprio Spring Boot |
+| Build | Maven (Maven Wrapper incluído) |
+
+## Arquitetura e estrutura
+
+```
+agenda-campus/
+├── pom.xml, mvnw, mvnw.cmd
+├── docs/imagens/             prints usados neste README
+└── src/
+    └── main/
+        ├── java/com/faculdade/eventos/
+        │   ├── controller/   endpoints REST
+        │   ├── service/      regras de negócio
+        │   ├── repository/   acesso ao banco e consultas dos filtros
+        │   ├── model/        entidades JPA, com as validações dos dados recebidos
+        │   ├── exception/    tratamento centralizado de erros
+        │   └── config/       documentação do Swagger
+        └── resources/
+            ├── application.properties
+            ├── db/migration/ scripts Flyway de criação das tabelas
+            └── static/       interface web (HTML, CSS, JS)
+```
+
+Fluxo de uma requisição:
+
+```mermaid
+flowchart LR
+    C[Cliente / Interface web] --> CT[Controller<br/>valida o JSON recebido]
+    CT --> S[Service<br/>regras de negócio]
+    S --> R[Repository<br/>JPA]
+    R --> DB[(PostgreSQL)]
+    S -. exceções .-> H[ApiExceptionHandler<br/>ProblemDetail]
+    H -.-> C
+```
+
+## Diagrama do banco de dados
+
+```mermaid
+erDiagram
+    EVENTOS ||--o{ INSCRICOES : "recebe"
+    PARTICIPANTES ||--o{ INSCRICOES : "realiza"
+
+    EVENTOS {
+        BIGINT id PK "identity"
+        VARCHAR(150) nome "NOT NULL"
+        TEXT descricao "opcional"
+        VARCHAR(200) local "NOT NULL"
+        TIMESTAMPTZ data_inicio "NOT NULL"
+        TIMESTAMPTZ prazo_inscricao "NOT NULL, <= data_inicio"
+        INTEGER capacidade "NOT NULL, > 0"
+        TIMESTAMPTZ criado_em "default now"
+    }
+
+    PARTICIPANTES {
+        BIGINT id PK "identity"
+        VARCHAR(150) nome "NOT NULL"
+        VARCHAR(254) email UK "NOT NULL"
+        TIMESTAMPTZ criado_em "default now"
+    }
+
+    INSCRICOES {
+        BIGINT id PK "identity"
+        BIGINT evento_id FK "NOT NULL"
+        BIGINT participante_id FK "NOT NULL"
+        VARCHAR(20) status "CONFIRMADA | CANCELADA"
+        TIMESTAMPTZ data_inscricao "default now"
+        TIMESTAMPTZ atualizado_em "default now"
+    }
+```
+
+`INSCRICOES` é a tabela associativa do relacionamento N:N entre eventos e
+participantes.
+
+## Endpoints
+
+Base: `http://localhost:8080`. A documentação completa, com os corpos de
+requisição e resposta, está no Swagger UI.
+
+### Eventos
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| GET | `/eventos` | Lista os eventos (filtros por nome, local, período e vagas) |
+| GET | `/eventos/{id}` | Busca evento por ID, com as vagas disponíveis |
+| POST | `/eventos` | Cadastra evento |
+| PUT | `/eventos/{id}` | Atualiza evento |
+| DELETE | `/eventos/{id}` | Exclui evento sem inscrições |
+
+### Participantes
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| GET | `/participantes` | Lista os participantes (filtros por nome e e-mail) |
+| GET | `/participantes/{id}` | Busca participante por ID |
+| POST | `/participantes` | Cadastra participante |
+| PUT | `/participantes/{id}` | Atualiza participante |
+| DELETE | `/participantes/{id}` | Exclui participante sem inscrições |
+
+### Inscrições
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| GET | `/inscricoes` | Lista as inscrições (filtros por evento, participante e status) |
+| GET | `/inscricoes/{id}` | Busca inscrição por ID |
+| POST | `/inscricoes` | Inscreve participante em evento |
+| PUT | `/inscricoes/{id}` | Cancela ou reativa inscrição |
+| DELETE | `/inscricoes/{id}` | Exclui inscrição cancelada |
+
+Corpo das requisições de inscrição:
+
+```jsonc
+// POST /inscricoes
+{ "evento": { "id": 1 }, "participante": { "id": 3 } }
+
+// PUT /inscricoes/{id}  (CANCELADA para cancelar, CONFIRMADA para reativar)
+{ "status": "CANCELADA" }
+```
+
+A resposta traz a inscrição com os dados do evento e do participante.
+
+### Filtros, paginação e ordenação
+
+Todos os filtros são opcionais e podem ser combinados.
+
+| Recurso | Parâmetros de filtro |
+|---|---|
+| Eventos | `nome`, `local` (parte do texto, sem diferenciar maiúsculas), `inicioDe`, `inicioAte` (data e hora ISO 8601), `somenteDisponiveis` (`true` mostra só eventos com prazo aberto e vagas) |
+| Participantes | `nome`, `email` (parte do texto, sem diferenciar maiúsculas) |
+| Inscrições | `eventoId`, `participanteId`, `status` (`CONFIRMADA` ou `CANCELADA`) |
+
+Todas as listagens são paginadas e aceitam `page` (padrão `0`), `size`
+(padrão `10`) e `sort` (padrão `id,asc`). Exemplos:
+
+```
+GET /eventos?nome=semana&somenteDisponiveis=true&sort=dataInicio,asc
+GET /participantes?email=exemplo.com&page=0&size=5
+GET /inscricoes?eventoId=1&status=CONFIRMADA
+```
+
+### Status HTTP e tratamento de erros
+
+| Código | Quando acontece |
+|---|---|
+| `200 OK` | Consulta ou atualização realizada |
+| `201 Created` | Cadastro realizado; o cabeçalho `Location` traz o endereço do novo recurso |
+| `204 No Content` | Exclusão realizada |
+| `400 Bad Request` | Campos inválidos, JSON malformado, parâmetro ou campo de ordenação inválido, datas incoerentes |
+| `404 Not Found` | Evento, participante ou inscrição não encontrados |
+| `409 Conflict` | Violação de regra de negócio: evento lotado, prazo encerrado, inscrição ou e-mail duplicados, exclusão com vínculos |
+| `500 Internal Server Error` | Erro inesperado, com mensagem genérica, sem expor detalhes internos |
+
+As exceções são tratadas em um único ponto, o `ApiExceptionHandler`, e todos os
+erros seguem o padrão ProblemDetail (RFC 9457), com mensagens em português:
+
+```json
+{
+  "title": "Conflito",
+  "status": 409,
+  "detail": "O evento não possui vagas disponíveis",
+  "instance": "/inscricoes"
+}
+```
+
+Nos erros de validação (`400`), a resposta também traz o campo `campos`, com a
+mensagem de cada campo inválido.
+
+## Regras de negócio
+
+**Eventos**
+- Nome, local, data de início, prazo de inscrição e capacidade são obrigatórios.
+- A capacidade deve ser maior que zero e não pode ficar abaixo das inscrições confirmadas.
+- Um novo evento deve começar no futuro, e o prazo de inscrição não pode ser posterior ao início.
+- As datas não podem ser alteradas depois que o evento começa.
+- Só pode ser excluído se não tiver inscrições, inclusive canceladas.
+
+**Participantes**
+- Nome e e-mail são obrigatórios; o e-mail deve ser válido e único.
+- O e-mail é salvo sem espaços nas extremidades e em letras minúsculas.
+- Só pode ser excluído se não tiver inscrições, inclusive canceladas.
+
+**Inscrições**
+- Cada participante tem no máximo uma inscrição por evento; uma inscrição
+  cancelada pode ser reativada sem criar outro registro.
+- Inscrever ou reativar exige prazo aberto, evento não iniciado e vaga disponível.
+- Cancelar libera a vaga e só é permitido antes do início do evento.
+- Só inscrições canceladas podem ser excluídas, e antes do início do evento.
+- Inscrições simultâneas não ultrapassam a capacidade: o registro do evento é
+  bloqueado (`PESSIMISTIC_WRITE`) durante a verificação de vagas.
+
+Vagas disponíveis = capacidade − inscrições confirmadas.

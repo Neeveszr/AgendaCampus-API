@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#2563eb">
+        <title>
+            Cadastro de evento · Agenda Campus
+        </title>
+        <link rel="stylesheet" href="/css/estilo.css">
+        <script type="module" src="/js/evento-form.js">
+        </script>
+    </head>
+    <body>
+        <a class="skip-link" href="#conteudo">
+            Pular para o conteúdo
+        </a>
+        <header class="site-header">
+            <div class="nav-inner">
+                <a class="brand" href="/" aria-label="Agenda Campus, página inicial">
+                    <img src="/img/logo.svg" width="35" height="35" alt="">
+                    Agenda Campus
+                </a>
+                <nav aria-label="Navegação principal">
+                    <a href="/" aria-current="page">
+                        Eventos
+                    </a>
+                    <a href="/participantes.html" >
+                        Participantes
+                    </a>
+                    <a href="/inscricoes.html" >
+                        Inscrições
+                    </a>
+                </nav>
+                <span class="nav-caption">
+                    APRENDER. PARTICIPAR. CONECTAR.
+                </span>
+            </div>
+        </header>
+        <main id="conteudo" class="container">
+            <div id="mensagem" class="mensagem" role="status" aria-live="polite" hidden tabindex="-1">
+            </div>
+            <a class="back" href="/">
+                ← Todos os eventos
+            </a>
+            <section class="hero">
+                <div class="hero-copy">
+                    <p class="eyebrow">
+                        NOVAS EXPERIÊNCIAS
+                    </p>
+                    <h1>
+                        Crie uma nova conexão
+                    </h1>
+                    <p>
+                        Preencha as informações e prepare o próximo encontro.
+                    </p>
+                </div>
+                <div class="hero-art" aria-hidden="true">
+                    <img src="/img/calendario.svg" width="280" height="180" alt="">
+                    <span class="art-note">
+                        Conhecimento que
+                        <br>
+                        conecta pessoas.
+                    </span>
+                </div>
+            </section>
+            <section class="panel spacious form-panel">
+                <h2 id="titulo-form">
+                    Dados do evento
+                </h2>
+                <form id="form-evento">
+                    <fieldset id="campos-evento">
+                        <div class="form-grid">
+                            <label>
+                                Nome do evento *
+                                <input name="nome" type="text" required maxlength="150" placeholder="Ex.: Oficina de Spring Boot">
+                            </label>
+                            <label>
+                                Local *
+                                <input name="local" type="text" required maxlength="200" placeholder="Ex.: Laboratório 01">
+                            </label>
+                            <label class="span-2">
+                                Descrição
+                                <textarea name="descricao" rows="4" placeholder="Conte o que os participantes vão aprender"></textarea>
+                            </label>
+                            <label>
+                                Capacidade *
+                                <input name="capacidade" type="number" required min="1" max="2147483647" step="1" placeholder="Número de participantes">
+                            </label>
+                            <label>
+                                Data e hora de início *
+                                <input name="dataInicio" type="datetime-local" required step="any">
+                            </label>
+                            <label>
+                                Prazo de inscrição *
+                                <input name="prazoInscricao" type="datetime-local" required step="any">
+                            </label>
+                        </div>
+                        <p class="form-help">
+                            O prazo de inscrição deve ser anterior ou igual ao início do evento. Campos com * são obrigatórios.
+                        </p>
+                        <div class="form-footer">
+                            <a id="cancelar" href="/" class="btn subtle">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn primary">
+                                Salvar evento
+                            </button>
+                        </div>
+                    </fieldset>
+                </form>
+            </section>
+        </main>
+        <footer class="site-footer">
+            <a class="brand small" href="/">
+                <img src="/img/logo.svg" width="35" height="35" alt="">
+                Agenda Campus
+            </a>
+            <span>
+                Novas experiências começam com uma conexão.
+            </span>
+            <span>
+                Eventos acadêmicos
+            </span>
+        </footer>
+    </body>
+</html>

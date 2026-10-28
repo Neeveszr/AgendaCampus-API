@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#2563eb">
+        <title>
+            Participantes · Agenda Campus
+        </title>
+        <link rel="stylesheet" href="/css/estilo.css">
+        <script type="module" src="/js/participantes.js">
+        </script>
+    </head>
+    <body>
+        <a class="skip-link" href="#conteudo">
+            Pular para o conteúdo
+        </a>
+        <header class="site-header">
+            <div class="nav-inner">
+                <a class="brand" href="/" aria-label="Agenda Campus, página inicial">
+                    <img src="/img/logo.svg" width="35" height="35" alt="">
+                    Agenda Campus
+                </a>
+                <nav aria-label="Navegação principal">
+                    <a href="/" >
+                        Eventos
+                    </a>
+                    <a href="/participantes.html" aria-current="page">
+                        Participantes
+                    </a>
+                    <a href="/inscricoes.html" >
+                        Inscrições
+                    </a>
+                </nav>
+                <span class="nav-caption">
+                    APRENDER. PARTICIPAR. CONECTAR.
+                </span>
+            </div>
+        </header>
+        <main id="conteudo" class="container">
+            <div id="mensagem" class="mensagem" role="status" aria-live="polite" hidden tabindex="-1">
+            </div>
+            <section class="hero">
+                <div class="hero-copy">
+                    <p class="eyebrow">
+                        CADA PESSOA, UMA NOVA POSSIBILIDADE
+                    </p>
+                    <h1>
+                        Pessoas que fazem acontecer
+                    </h1>
+                    <p>
+                        Cadastre e gerencie quem faz parte dos seus eventos.
+                    </p>
+                </div>
+                <div class="hero-art" aria-hidden="true">
+                    <img src="/img/calendario.svg" width="280" height="180" alt="">
+                    <span class="art-note">
+                        Conhecimento que
+                        <br>
+                        conecta pessoas.
+                    </span>
+                </div>
+            </section>
+            <div class="section-heading">
+                <div>
+                    <h2>
+                        Nossa comunidade
+                    </h2>
+                    <p>
+                        Conecte pessoas às próximas experiências.
+                    </p>
+                </div>
+                <button type="button" class="btn primary" id="novo">
+                    ＋ Novo participante
+                </button>
+            </div>
+            <div class="participants-layout">
+                <section>
+                    <form id="filtros" class="panel filters">
+                        <div class="filter-grid two">
+                            <label>
+                                Nome
+                                <input name="nome" type="search" placeholder="Buscar por nome">
+                            </label>
+                            <label>
+                                E-mail
+                                <input name="email" type="search" placeholder="Buscar por e-mail">
+                            </label>
+                        </div>
+                        <div class="filter-actions">
+                            <label>
+                                Ordenação
+                                <select name="sort">
+                                    <option value="nome,asc">
+                                        Nome (A–Z)
+                                    </option>
+                                    <option value="id,desc">
+                                        Mais recentes
+                                    </option>
+                                </select>
+                            </label>
+                            <div>
+                                <button type="reset" class="btn subtle">
+                                    Limpar
+                                </button>
+                                <button type="submit" class="btn secondary">
+                                    Filtrar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="panel">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            Nome
+                                        </th>
+                                        <th>
+                                            E-mail
+                                        </th>
+                                        <th>
+                                            Cadastro
+                                        </th>
+                                        <th>
+                                            Ações
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="participantes">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="paginacao" id="paginacao" role="navigation" aria-label="Paginação">
+                        </div>
+                    </div>
+                </section>
+                <aside class="panel spacious">
+                    <h2 id="titulo-form">
+                        Novo participante
+                    </h2>
+                    <p class="muted">
+                        Uma nova conexão começa por aqui.
+                    </p>
+                    <form id="form-participante">
+                        <label>
+                            Nome completo *
+                            <input name="nome" type="text" required maxlength="150" autocomplete="name">
+                        </label>
+                        <label>
+                            E-mail *
+                            <input name="email" type="email" required maxlength="254" autocomplete="email">
+                        </label>
+                        <p class="form-help">
+                            O e-mail deve ser único.
+                        </p>
+                        <button class="btn primary full" type="submit">
+                            Salvar participante
+                        </button>
+                        <button id="cancelar" class="btn subtle full" type="button">
+                            Cancelar
+                        </button>
+                    </form>
+                </aside>
+            </div>
+        </main>
+        <footer class="site-footer">
+            <a class="brand small" href="/">
+                <img src="/img/logo.svg" width="35" height="35" alt="">
+                Agenda Campus
+            </a>
+            <span>
+                Novas experiências começam com uma conexão.
+            </span>
+            <span>
+                Eventos acadêmicos
+            </span>
+        </footer>
+    </body>
+</html>

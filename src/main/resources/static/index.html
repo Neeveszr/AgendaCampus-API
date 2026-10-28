@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#2563eb">
+        <title>
+            Eventos · Agenda Campus
+        </title>
+        <link rel="stylesheet" href="/css/estilo.css">
+        <script type="module" src="/js/eventos.js">
+        </script>
+    </head>
+    <body>
+        <a class="skip-link" href="#conteudo">
+            Pular para o conteúdo
+        </a>
+        <header class="site-header">
+            <div class="nav-inner">
+                <a class="brand" href="/" aria-label="Agenda Campus, página inicial">
+                    <img src="/img/logo.svg" width="35" height="35" alt="">
+                    Agenda Campus
+                </a>
+                <nav aria-label="Navegação principal">
+                    <a href="/" aria-current="page">
+                        Eventos
+                    </a>
+                    <a href="/participantes.html" >
+                        Participantes
+                    </a>
+                    <a href="/inscricoes.html" >
+                        Inscrições
+                    </a>
+                </nav>
+                <span class="nav-caption">
+                    APRENDER. PARTICIPAR. CONECTAR.
+                </span>
+            </div>
+        </header>
+        <main id="conteudo" class="container">
+            <div id="mensagem" class="mensagem" role="status" aria-live="polite" hidden tabindex="-1">
+            </div>
+            <section class="hero">
+                <div class="hero-copy">
+                    <p class="eyebrow">
+                        SEU PRÓXIMO PASSO COMEÇA AQUI
+                    </p>
+                    <h1>
+                        Encontros que abrem
+                        <br>
+                        novas possibilidades.
+                    </h1>
+                    <p>
+                        Descubra eventos, compartilhe ideias e faça parte.
+                    </p>
+                </div>
+                <div class="hero-art" aria-hidden="true">
+                    <img src="/img/calendario.svg" width="280" height="180" alt="">
+                    <span class="art-note">
+                        Conhecimento que
+                        <br>
+                        conecta pessoas.
+                    </span>
+                </div>
+            </section>
+            <section class="section-heading">
+                <div>
+                    <h2>
+                        Explore os eventos
+                    </h2>
+                    <p>
+                        Encontre o seu próximo aprendizado.
+                    </p>
+                </div>
+                <a class="btn primary" href="/evento-form.html">
+                    ＋ Criar evento
+                </a>
+            </section>
+            <form id="filtros" class="filters panel">
+                <div class="filter-grid">
+                    <label>
+                        Nome do evento
+                        <input name="nome" type="search" placeholder="O que você quer aprender?">
+                    </label>
+                    <label>
+                        Local
+                        <input name="local" type="search" placeholder="Onde acontece?">
+                    </label>
+                    <label>
+                        Início a partir de
+                        <input name="inicioDe" type="date" >
+                    </label>
+                    <label>
+                        Início até
+                        <input name="inicioAte" type="date" >
+                    </label>
+                    <label>
+                        Ordenar por
+                        <select name="sort">
+                            <option value="dataInicio,asc">
+                                Data mais próxima
+                            </option>
+                            <option value="nome,asc">
+                                Nome (A–Z)
+                            </option>
+                            <option value="id,desc">
+                                Mais recentes
+                            </option>
+                        </select>
+                    </label>
+                </div>
+                <div class="filter-actions">
+                    <label class="checkbox">
+                        <input name="somenteDisponiveis" type="checkbox">
+                        Somente com inscrições abertas e vagas
+                    </label>
+                    <div>
+                        <button type="reset" class="btn subtle">
+                            Limpar
+                        </button>
+                        <button class="btn secondary" type="submit">
+                            Aplicar filtros
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <p id="resumo" class="muted" role="status">
+            </p>
+            <div id="eventos" class="event-grid">
+            </div>
+            <div class="paginacao" id="paginacao" role="navigation" aria-label="Paginação">
+            </div>
+        </main>
+        <footer class="site-footer">
+            <a class="brand small" href="/">
+                <img src="/img/logo.svg" width="35" height="35" alt="">
+                Agenda Campus
+            </a>
+            <span>
+                Novas experiências começam com uma conexão.
+            </span>
+            <span>
+                Eventos acadêmicos
+            </span>
+        </footer>
+    </body>
+</html>

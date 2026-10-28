@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#2563eb">
+        <title>
+            Inscrições · Agenda Campus
+        </title>
+        <link rel="stylesheet" href="/css/estilo.css">
+        <script type="module" src="/js/inscricoes.js">
+        </script>
+    </head>
+    <body>
+        <a class="skip-link" href="#conteudo">
+            Pular para o conteúdo
+        </a>
+        <header class="site-header">
+            <div class="nav-inner">
+                <a class="brand" href="/" aria-label="Agenda Campus, página inicial">
+                    <img src="/img/logo.svg" width="35" height="35" alt="">
+                    Agenda Campus
+                </a>
+                <nav aria-label="Navegação principal">
+                    <a href="/" >
+                        Eventos
+                    </a>
+                    <a href="/participantes.html" >
+                        Participantes
+                    </a>
+                    <a href="/inscricoes.html" aria-current="page">
+                        Inscrições
+                    </a>
+                </nav>
+                <span class="nav-caption">
+                    APRENDER. PARTICIPAR. CONECTAR.
+                </span>
+            </div>
+        </header>
+        <main id="conteudo" class="container">
+            <div id="mensagem" class="mensagem" role="status" aria-live="polite" hidden tabindex="-1">
+            </div>
+            <section class="hero">
+                <div class="hero-copy">
+                    <p class="eyebrow">
+                        APRENDER É MELHOR EM COMPANHIA
+                    </p>
+                    <h1>
+                        Conexões confirmadas
+                    </h1>
+                    <p>
+                        Acompanhe as inscrições e gerencie a participação nos eventos.
+                    </p>
+                </div>
+                <div class="hero-art" aria-hidden="true">
+                    <img src="/img/calendario.svg" width="280" height="180" alt="">
+                    <span class="art-note">
+                        Conhecimento que
+                        <br>
+                        conecta pessoas.
+                    </span>
+                </div>
+            </section>
+            <section class="panel spacious">
+                <h2>
+                    Encontre uma inscrição
+                </h2>
+                <form id="filtros">
+                    <div class="registration-filters">
+                        <fieldset class="seletor" id="filtro-evento">
+                            <legend>
+                                Evento
+                            </legend>
+                            <div class="busca-seletor">
+                                <input type="search" aria-label="Buscar evento" placeholder="Buscar por nome">
+                                <button type="button" class="btn subtle buscar">
+                                    Buscar
+                                </button>
+                            </div>
+                            <select aria-label="Evento" >
+                                <option value="">
+                                    Selecione
+                                </option>
+                            </select>
+                            <button type="button" class="mais link">
+                                Carregar mais
+                            </button>
+                            <small class="seletor-estado" role="status">
+                            </small>
+                        </fieldset>
+                        <fieldset class="seletor" id="filtro-participante">
+                            <legend>
+                                Participante
+                            </legend>
+                            <div class="busca-seletor">
+                                <input type="search" aria-label="Buscar participante" placeholder="Buscar por nome">
+                                <button type="button" class="btn subtle buscar">
+                                    Buscar
+                                </button>
+                            </div>
+                            <select aria-label="Participante" >
+                                <option value="">
+                                    Selecione
+                                </option>
+                            </select>
+                            <button type="button" class="mais link">
+                                Carregar mais
+                            </button>
+                            <small class="seletor-estado" role="status">
+                            </small>
+                        </fieldset>
+                        <label>
+                            Status
+                            <select name="status">
+                                <option value="">
+                                    Todos os status
+                                </option>
+                                <option value="CONFIRMADA">
+                                    Confirmada
+                                </option>
+                                <option value="CANCELADA">
+                                    Cancelada
+                                </option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="filter-actions">
+                        <label>
+                            Ordenação
+                            <select name="sort">
+                                <option value="id,desc">
+                                    Mais recentes
+                                </option>
+                                <option value="id,asc">
+                                    Mais antigas
+                                </option>
+                            </select>
+                        </label>
+                        <div>
+                            <button type="reset" class="btn subtle">
+                                Limpar
+                            </button>
+                            <button class="btn secondary" type="submit">
+                                Aplicar filtros
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+            <p class="info-banner">
+                Cancelar uma inscrição antes do início do evento libera uma vaga.
+            </p>
+            <section class="panel">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>
+                                    Participante
+                                </th>
+                                <th>
+                                    Evento
+                                </th>
+                                <th>
+                                    Data da inscrição
+                                </th>
+                                <th>
+                                    Status
+                                </th>
+                                <th>
+                                    Ações
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="inscricoes">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="paginacao" id="paginacao" role="navigation" aria-label="Paginação">
+                </div>
+            </section>
+            <section class="panel spacious">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">
+                            MAIS UMA CONEXÃO
+                        </p>
+                        <h2>
+                            Nova inscrição
+                        </h2>
+                        <p>
+                            Escolha o evento e quem vai participar.
+                        </p>
+                    </div>
+                </div>
+                <form id="nova-inscricao">
+                    <div class="form-grid">
+                        <fieldset class="seletor" id="novo-evento">
+                            <legend>
+                                Evento
+                            </legend>
+                            <div class="busca-seletor">
+                                <input type="search" aria-label="Buscar evento" placeholder="Buscar por nome">
+                                <button type="button" class="btn subtle buscar">
+                                    Buscar
+                                </button>
+                            </div>
+                            <select aria-label="Evento" required>
+                                <option value="">
+                                    Selecione
+                                </option>
+                            </select>
+                            <button type="button" class="mais link">
+                                Carregar mais
+                            </button>
+                            <small class="seletor-estado" role="status">
+                            </small>
+                        </fieldset>
+                        <fieldset class="seletor" id="novo-participante">
+                            <legend>
+                                Participante
+                            </legend>
+                            <div class="busca-seletor">
+                                <input type="search" aria-label="Buscar participante" placeholder="Buscar por nome">
+                                <button type="button" class="btn subtle buscar">
+                                    Buscar
+                                </button>
+                            </div>
+                            <select aria-label="Participante" required>
+                                <option value="">
+                                    Selecione
+                                </option>
+                            </select>
+                            <button type="button" class="mais link">
+                                Carregar mais
+                            </button>
+                            <small class="seletor-estado" role="status">
+                            </small>
+                        </fieldset>
+                    </div>
+                    <div class="form-footer">
+                        <p id="vagas" class="muted" role="status">
+                            Selecione um evento para consultar as vagas.
+                        </p>
+                        <button class="btn primary" type="submit">
+                            Confirmar inscrição
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </main>
+        <footer class="site-footer">
+            <a class="brand small" href="/">
+                <img src="/img/logo.svg" width="35" height="35" alt="">
+                Agenda Campus
+            </a>
+            <span>
+                Novas experiências começam com uma conexão.
+            </span>
+            <span>
+                Eventos acadêmicos
+            </span>
+        </footer>
+    </body>
+</html>

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#2563eb">
+        <title>
+            Detalhes do evento · Agenda Campus
+        </title>
+        <link rel="stylesheet" href="/css/estilo.css">
+        <script type="module" src="/js/evento.js">
+        </script>
+    </head>
+    <body>
+        <a class="skip-link" href="#conteudo">
+            Pular para o conteúdo
+        </a>
+        <header class="site-header">
+            <div class="nav-inner">
+                <a class="brand" href="/" aria-label="Agenda Campus, página inicial">
+                    <img src="/img/logo.svg" width="35" height="35" alt="">
+                    Agenda Campus
+                </a>
+                <nav aria-label="Navegação principal">
+                    <a href="/" aria-current="page">
+                        Eventos
+                    </a>
+                    <a href="/participantes.html" >
+                        Participantes
+                    </a>
+                    <a href="/inscricoes.html" >
+                        Inscrições
+                    </a>
+                </nav>
+                <span class="nav-caption">
+                    APRENDER. PARTICIPAR. CONECTAR.
+                </span>
+            </div>
+        </header>
+        <main id="conteudo" class="container">
+            <div id="mensagem" class="mensagem" role="status" aria-live="polite" hidden tabindex="-1">
+            </div>
+            <a class="back" href="/">
+                ← Todos os eventos
+            </a>
+            <section class="hero compact">
+                <div class="hero-copy">
+                    <p class="eyebrow">
+                        CONHECIMENTO COMPARTILHADO
+                    </p>
+                    <h1 id="nome">
+                        Carregando evento…
+                    </h1>
+                    <p>
+                        Uma oportunidade para aprender e se conectar.
+                    </p>
+                </div>
+                <div class="hero-art" aria-hidden="true">
+                    <img src="/img/calendario.svg" width="280" height="180" alt="">
+                    <span class="art-note">
+                        Conhecimento que
+                        <br>
+                        conecta pessoas.
+                    </span>
+                </div>
+            </section>
+            <div id="detalhes" hidden>
+                <div class="detail-grid">
+                    <section class="panel spacious">
+                        <h2>
+                            Sobre o evento
+                        </h2>
+                        <p id="descricao" class="description">
+                        </p>
+                        <dl class="event-info">
+                            <div>
+                                <dt>
+                                    Local
+                                </dt>
+                                <dd id="local">
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>
+                                    Data e hora de início
+                                </dt>
+                                <dd id="inicio">
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>
+                                    Prazo de inscrição
+                                </dt>
+                                <dd id="prazo">
+                                </dd>
+                            </div>
+                        </dl>
+                        <div class="actions">
+                            <a id="editar" class="btn secondary">
+                                Editar evento
+                            </a>
+                            <button type="button" id="excluir" class="btn danger">
+                                Excluir evento
+                            </button>
+                        </div>
+                    </section>
+                    <section class="panel spacious">
+                        <h2>
+                            Faça parte deste encontro
+                        </h2>
+                        <p id="vagas" class="vacancy-title">
+                        </p>
+                        <p id="capacidade" class="muted">
+                        </p>
+                        <progress id="ocupacao" aria-label="Ocupação do evento">
+                        </progress>
+                        <p id="situacao" class="muted">
+                        </p>
+                        <form id="inscrever">
+                            <fieldset class="seletor" id="participante">
+                                <legend>
+                                    Participante
+                                </legend>
+                                <div class="busca-seletor">
+                                    <input type="search" aria-label="Buscar participante" placeholder="Buscar por nome">
+                                    <button type="button" class="btn subtle buscar">
+                                        Buscar
+                                    </button>
+                                </div>
+                                <select aria-label="Participante" required>
+                                    <option value="">
+                                        Selecione
+                                    </option>
+                                </select>
+                                <button type="button" class="mais link">
+                                    Carregar mais
+                                </button>
+                                <small class="seletor-estado" role="status">
+                                </small>
+                            </fieldset>
+                            <button class="btn primary full" type="submit">
+                                Confirmar inscrição
+                            </button>
+                        </form>
+                        <a href="/participantes.html" class="text-link">
+                            Cadastrar participante →
+                        </a>
+                    </section>
+                </div>
+                <section class="panel spacious">
+                    <div class="section-heading">
+                        <div>
+                            <h2>
+                                Participantes inscritos
+                            </h2>
+                            <p>
+                                Inscrições confirmadas neste evento.
+                            </p>
+                        </div>
+                        <a id="gerenciar" class="text-link">
+                            Gerenciar inscrições →
+                        </a>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Participante
+                                    </th>
+                                    <th>
+                                        Data da inscrição
+                                    </th>
+                                    <th>
+                                        Status
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="inscritos">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="paginacao" id="paginacao" role="navigation" aria-label="Paginação">
+                    </div>
+                </section>
+            </div>
+        </main>
+        <footer class="site-footer">
+            <a class="brand small" href="/">
+                <img src="/img/logo.svg" width="35" height="35" alt="">
+                Agenda Campus
+            </a>
+            <span>
+                Novas experiências começam com uma conexão.
+            </span>
+            <span>
+                Eventos acadêmicos
+            </span>
+        </footer>
+    </body>
+</html>
