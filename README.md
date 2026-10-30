@@ -22,8 +22,8 @@ acadêmicos (palestras, oficinas, minicursos e encontros), os participantes e as
 inscrições, com controle de vagas e prazos de inscrição.
 
 - **Eventos:** cadastro, edição e exclusão, com nome, local, descrição, data de
-  início, prazo de inscrição e capacidade. A lista tem busca por nome e local,
-  filtro por período, filtro de eventos com vagas e ordenação.
+  início, prazo de inscrição e capacidade. A lista tem busca por nome e local
+  e ordenação.
 - **Participantes:** cadastro com e-mail único, edição, exclusão e busca por
   nome ou e-mail.
 - **Inscrições:** inscrição de participantes em eventos, cancelamento (que libera
@@ -36,14 +36,14 @@ inscrições, com controle de vagas e prazos de inscrição.
 
 | Requisito | Como o projeto atende |
 |---|---|
-| 2.1 Estrutura e organização | Java 25 e Spring Boot 4.1, em camadas `controller`, `service` e `repository`, com Spring Data JPA e PostgreSQL ([arquitetura](#arquitetura-e-estrutura)) |
+| 2.1 Estrutura e organização | Java 21 e Spring Boot 4.1, em camadas `controller`, `service` e `repository`, com Spring Data JPA e PostgreSQL ([arquitetura](#arquitetura-e-estrutura)) |
 | 2.1 Entidades relacionadas com `@OneToMany` e `@ManyToOne` | 3 tabelas: `eventos` e `participantes`, ligadas por `inscricoes` (N:N). `Inscricao` tem `@ManyToOne` para `Evento` e `Participante`, que têm o `@OneToMany(mappedBy)` de volta ([diagrama](#diagrama-do-banco-de-dados)) |
 | 2.2 CRUD completo | Criar, listar, buscar por ID, atualizar e excluir em eventos, participantes e inscrições ([endpoints](#endpoints)) |
 | 2.3 DTOs | Pacote `dto`: records `...Request` recebem e validam os dados, records `...Response` são devolvidos pela API, e `PaginaResponse` representa as listagens paginadas. A conversão é manual: o service cria a entidade a partir do Request, e os métodos `Response.de(entidade)` fazem o caminho inverso. Nenhuma entidade JPA nem objeto interno do Spring é exposto |
 | 2.4 `ResponseEntity` e status HTTP | Todos os métodos dos controllers devolvem `ResponseEntity`: `200`, `201` com `Location`, `204`, e `400`/`404`/`409` pelo tratamento de erros ([status e erros](#status-http-e-tratamento-de-erros)) |
 | 2.5 Validação e exceções | `@NotBlank`, `@NotNull`, `@Size`, `@Email` e `@Min` nos DTOs; erros tratados em um único ponto com `@RestControllerAdvice` (um `@ControllerAdvice`) e `@ExceptionHandler`, no padrão ProblemDetail |
-| 2.6 Filtragem de dados | Filtros combináveis por URL nas três listagens: texto, período de datas, status e disponibilidade ([filtros](#filtros-paginação-e-ordenação)) |
-| 2.7 Regras de negócio | Controle de vagas, prazos, e-mail e inscrição únicos, bloqueio de exclusão com vínculos, cancelamento e reativação, datas travadas após o início, vagas calculadas e proteção contra inscrições simultâneas, todas na camada de service ([regras](#regras-de-negócio)) |
+| 2.6 Filtragem de dados | Filtros combináveis por URL nas três listagens, feitos com métodos derivados do Spring Data (`findBy...`): nome e local, nome e e-mail, evento e status ([filtros](#filtros-paginação-e-ordenação)) |
+| 2.7 Regras de negócio | Controle de vagas, prazos, e-mail e inscrição únicos, bloqueio de exclusão com vínculos, cancelamento e reativação, vagas calculadas e proteção contra inscrições simultâneas, todas na camada de service ([regras](#regras-de-negócio)) |
 | 2.8 Swagger | springdoc-openapi, com descrição, parâmetros, respostas e possíveis erros de cada endpoint em `/swagger-ui/index.html` |
 | **Extra:** telas conectadas ao backend | Interface web em HTML, CSS e JavaScript que consome a API ([prints](#prints)) |
 
@@ -55,7 +55,7 @@ inscrições, com controle de vagas e prazos de inscrição.
 
 ### Pré-requisitos
 
-- **JDK 25** (`java -version` deve indicar 25)
+- **JDK 21** ou mais recente (`java -version` deve indicar 21 ou superior)
 - **PostgreSQL** em execução (versão 13 ou superior recomendada)
 - Não é necessário instalar o Maven: use o wrapper `mvnw` / `mvnw.cmd`
 
@@ -112,7 +112,7 @@ da configuração de execução.
 
 ### Detalhes do evento
 
-![Detalhes de um evento lotado, com a lista de participantes inscritos](docs/imagens/evento-detalhes.png)
+![Detalhes de um evento com as vagas disponíveis, o formulário de inscrição e a lista de participantes inscritos](docs/imagens/evento-detalhes.png)
 
 ### Cadastro e edição de evento
 
@@ -134,7 +134,7 @@ da configuração de execução.
 
 | Camada | Tecnologia |
 |---|---|
-| Linguagem | Java 25 |
+| Linguagem | Java 21 |
 | Framework | Spring Boot 4.1 (Web MVC, Data JPA, Validation) |
 | Banco de dados | PostgreSQL |
 | Migrações | Flyway |
@@ -227,7 +227,7 @@ requisição e resposta, está no Swagger UI.
 
 | Método | Endpoint | Descrição |
 |---|---|---|
-| GET | `/eventos` | Lista os eventos (filtros por nome, local, período e vagas) |
+| GET | `/eventos` | Lista os eventos (filtros por nome e local) |
 | GET | `/eventos/{id}` | Busca evento por ID, com as vagas disponíveis |
 | POST | `/eventos` | Cadastra evento |
 | PUT | `/eventos/{id}` | Atualiza evento |
@@ -247,7 +247,7 @@ requisição e resposta, está no Swagger UI.
 
 | Método | Endpoint | Descrição |
 |---|---|---|
-| GET | `/inscricoes` | Lista as inscrições (filtros por evento, participante e status) |
+| GET | `/inscricoes` | Lista as inscrições (filtros por evento e status) |
 | GET | `/inscricoes/{id}` | Busca inscrição por ID |
 | POST | `/inscricoes` | Inscreve participante em evento |
 | PUT | `/inscricoes/{id}` | Cancela ou reativa inscrição |
@@ -271,15 +271,15 @@ Todos os filtros são opcionais e podem ser combinados.
 
 | Recurso | Parâmetros de filtro |
 |---|---|
-| Eventos | `nome`, `local` (parte do texto, sem diferenciar maiúsculas), `inicioDe`, `inicioAte` (data e hora ISO 8601), `somenteDisponiveis` (`true` mostra só eventos com prazo aberto e vagas) |
+| Eventos | `nome`, `local` (parte do texto, sem diferenciar maiúsculas) |
 | Participantes | `nome`, `email` (parte do texto, sem diferenciar maiúsculas) |
-| Inscrições | `eventoId`, `participanteId`, `status` (`CONFIRMADA` ou `CANCELADA`) |
+| Inscrições | `eventoId`, `status` (`CONFIRMADA` ou `CANCELADA`) |
 
 Todas as listagens são paginadas e aceitam `page` (padrão `0`), `size`
 (padrão `10`) e `sort` (padrão `id,asc`). Exemplos:
 
 ```
-GET /eventos?nome=semana&somenteDisponiveis=true&sort=dataInicio,asc
+GET /eventos?nome=semana&local=auditorio&sort=dataInicio,asc
 GET /participantes?email=exemplo.com&page=0&size=5
 GET /inscricoes?eventoId=1&status=CONFIRMADA
 ```
@@ -298,7 +298,7 @@ GET /inscricoes?eventoId=1&status=CONFIRMADA
 
 As exceções são tratadas em um único ponto, o `ApiExceptionHandler`
 (`@RestControllerAdvice` com um `@ExceptionHandler` para cada tipo de erro), e todos os
-erros seguem o padrão ProblemDetail (RFC 9457), com mensagens em português:
+erros seguem o padrão ProblemDetail (RFC 9457). Os erros da API trazem mensagens em português:
 
 ```json
 {
@@ -318,7 +318,7 @@ mensagem de cada campo inválido.
 - Nome, local, data de início, prazo de inscrição e capacidade são obrigatórios.
 - A capacidade deve ser maior que zero e não pode ficar abaixo das inscrições confirmadas.
 - Um novo evento deve começar no futuro, e o prazo de inscrição não pode ser posterior ao início.
-- As datas não podem ser alteradas depois que o evento começa.
+- Na edição, uma nova data de início também deve ser futura.
 - Só pode ser excluído se não tiver inscrições, inclusive canceladas.
 
 **Participantes**
@@ -331,8 +331,8 @@ mensagem de cada campo inválido.
   cancelada pode ser reativada sem criar outro registro.
 - Inscrever ou reativar exige prazo aberto, evento não iniciado e vaga disponível.
 - Cancelar libera a vaga e só é permitido antes do início do evento.
-- Só inscrições canceladas podem ser excluídas, e antes do início do evento.
-- Inscrições simultâneas não ultrapassam a capacidade: o registro do evento é
-  bloqueado (`PESSIMISTIC_WRITE`) durante a verificação de vagas.
+- Só inscrições canceladas podem ser excluídas.
+- Inscrições simultâneas não ultrapassam a capacidade: o evento é travado
+  (`@Lock(PESSIMISTIC_WRITE)` no método `findComBloqueioById`) enquanto as vagas são conferidas.
 
 Vagas disponíveis = capacidade − inscrições confirmadas.

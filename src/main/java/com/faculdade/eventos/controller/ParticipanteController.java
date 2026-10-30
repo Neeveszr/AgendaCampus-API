@@ -66,8 +66,8 @@ public class ParticipanteController {
     @ApiResponse(responseCode = "200", description = "Consulta realizada", useReturnTypeSchema = true)
     @GetMapping
     public ResponseEntity<PaginaResponse<ParticipanteResponse>> listar(
-            @RequestParam(required = false) String nome,
-            @RequestParam(required = false) String email,
+            @RequestParam(defaultValue = "") String nome,
+            @RequestParam(defaultValue = "") String email,
             @PageableDefault(size = 10, sort = "id") Pageable pageable
     ) {
         return ResponseEntity.ok(participanteService.listar(nome, email, pageable));

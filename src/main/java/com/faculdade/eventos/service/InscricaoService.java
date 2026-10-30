@@ -40,11 +40,20 @@ public class InscricaoService {
 
     public PaginaResponse<InscricaoResponse> listar(
             Long eventoId,
-            Long participanteId,
             StatusInscricao status,
             Pageable pageable
     ) {
-        Page<Inscricao> inscricoes = inscricaoRepository.filtrar(eventoId, participanteId, status, pageable);
+        // Escolhe o método do repository conforme os filtros informados.
+        Page<Inscricao> inscricoes;
+        if (eventoId != null && status != null) {
+            inscricoes = inscricaoRepository.findByEventoIdAndStatus(eventoId, status, pageable);
+        } else if (eventoId != null) {
+            inscricoes = inscricaoRepository.findByEventoId(eventoId, pageable);
+        } else if (status != null) {
+            inscricoes = inscricaoRepository.findByStatus(status, pageable);
+        } else {
+            inscricoes = inscricaoRepository.findAll(pageable);
+        }
 
         return PaginaResponse.de(inscricoes.map(InscricaoResponse::de));
     }
@@ -55,7 +64,11 @@ public class InscricaoService {
 
     @Transactional
     public InscricaoResponse cadastrar(InscricaoRequest dados) {
-        Evento evento = buscarEventoComBloqueio(dados.eventoId());
+        // Trava o evento: inscrições simultâneas esperam e recontam as vagas.
+        Evento evento = eventoRepository.findComBloqueioById(dados.eventoId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Evento não encontrado com ID: " + dados.eventoId()
+                ));
 
         Participante participante = participanteRepository
                 .findById(dados.participanteId())
@@ -83,7 +96,7 @@ public class InscricaoService {
 
     @Transactional
     public InscricaoResponse atualizarStatus(Long id, StatusInscricao novoStatus) {
-        Inscricao inscricao = buscarInscricaoParaAlteracao(id);
+        Inscricao inscricao = buscarEntidade(id);
         Evento evento = inscricao.getEvento();
 
         if (inscricao.getStatus() == novoStatus) {
@@ -91,10 +104,14 @@ public class InscricaoService {
         }
 
         if (novoStatus == StatusInscricao.CONFIRMADA) {
+            // Reativar segue as mesmas regras de uma inscrição nova, com o evento travado.
+            eventoRepository.findComBloqueioById(evento.getId());
             validarInscricaoAberta(evento);
             validarVagaDisponivel(evento);
-        } else {
-            validarEventoNaoIniciado(evento);
+        } else if (!evento.getDataInicio().isAfter(OffsetDateTime.now())) {
+            throw new ConflitoException(
+                    "Não é possível cancelar após o início do evento"
+            );
         }
 
         inscricao.setStatus(novoStatus);
@@ -104,9 +121,7 @@ public class InscricaoService {
 
     @Transactional
     public void excluir(Long id) {
-        Inscricao inscricao = buscarInscricaoParaAlteracao(id);
-
-        validarEventoNaoIniciado(inscricao.getEvento());
+        Inscricao inscricao = buscarEntidade(id);
 
         if (inscricao.getStatus() != StatusInscricao.CANCELADA) {
             throw new ConflitoException(
@@ -125,26 +140,6 @@ public class InscricaoService {
                 ));
     }
 
-    private Inscricao buscarInscricaoParaAlteracao(Long id) {
-        Long eventoId = inscricaoRepository.buscarEventoIdPorInscricaoId(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException(
-                        "Inscrição não encontrada com ID: " + id
-                ));
-
-        // O evento deve ser bloqueado ANTES de ler o status da inscrição.
-        buscarEventoComBloqueio(eventoId);
-
-        return buscarEntidade(id);
-    }
-
-    // Trava o evento até o fim da transação: inscrições simultâneas esperam e recontam as vagas.
-    private Evento buscarEventoComBloqueio(Long eventoId) {
-        return eventoRepository.buscarPorIdComBloqueio(eventoId)
-                .orElseThrow(() -> new RecursoNaoEncontradoException(
-                        "Evento não encontrado com ID: " + eventoId
-                ));
-    }
-
     private void validarInscricaoAberta(Evento evento) {
         OffsetDateTime agora = OffsetDateTime.now();
 
@@ -155,14 +150,6 @@ public class InscricaoService {
         if (!evento.getPrazoInscricao().isAfter(agora)) {
             throw new ConflitoException(
                     "O prazo de inscrição está encerrado"
-            );
-        }
-    }
-
-    private void validarEventoNaoIniciado(Evento evento) {
-        if (!evento.getDataInicio().isAfter(OffsetDateTime.now())) {
-            throw new ConflitoException(
-                    "A operação não é permitida após o início do evento"
             );
         }
     }

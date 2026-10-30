@@ -36,31 +36,18 @@ public class EventoService {
     public PaginaResponse<EventoResponse> listar(
             String nome,
             String local,
-            OffsetDateTime inicioDe,
-            OffsetDateTime inicioAte,
-            boolean somenteDisponiveis,
             Pageable pageable
     ) {
-        if (inicioDe != null && inicioAte != null
-                && inicioDe.isAfter(inicioAte)) {
-            throw new RequisicaoInvalidaException(
-                    "O início do período não pode ser posterior ao fim"
-            );
-        }
-
-        Page<Evento> eventos = eventoRepository.filtrar(
-                PadraoBusca.contendo(nome), PadraoBusca.contendo(local), inicioDe, inicioAte,
-                somenteDisponiveis, OffsetDateTime.now(), StatusInscricao.CONFIRMADA,
-                pageable
+        // Filtro não informado chega como texto vazio, que aceita qualquer valor.
+        Page<Evento> eventos = eventoRepository.findByNomeContainingIgnoreCaseAndLocalContainingIgnoreCase(
+                nome.strip(), local.strip(), pageable
         );
 
         return PaginaResponse.de(eventos.map(this::paraResposta));
     }
 
     public EventoResponse buscarPorId(Long id) {
-        Evento evento = eventoRepository.findById(id)
-                .orElseThrow(() -> eventoNaoEncontrado(id));
-        return paraResposta(evento);
+        return paraResposta(buscarEntidade(id));
     }
 
     @Transactional
@@ -91,24 +78,17 @@ public class EventoService {
 
     @Transactional
     public EventoResponse atualizar(Long id, EventoRequest dados) {
-        Evento evento = buscarComBloqueio(id);
-        OffsetDateTime agora = OffsetDateTime.now();
+        // Trava o evento: uma inscrição simultânea espera, e a contagem abaixo fica correta.
+        Evento evento = eventoRepository.findComBloqueioById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Evento não encontrado com ID: " + id
+                ));
 
         validarPrazo(dados);
 
-        boolean alterouDatas =
-                !evento.getDataInicio().isEqual(dados.dataInicio())
-                        || !evento.getPrazoInscricao()
-                        .isEqual(dados.prazoInscricao());
-
-        if (!evento.getDataInicio().isAfter(agora) && alterouDatas) {
-            throw new ConflitoException(
-                    "As datas não podem ser alteradas após o início do evento"
-            );
-        }
-
-        if (evento.getDataInicio().isAfter(agora)
-                && !dados.dataInicio().isAfter(agora)) {
+        // Mudar a data de início só é permitido para uma data futura.
+        boolean mudouInicio = !evento.getDataInicio().isEqual(dados.dataInicio());
+        if (mudouInicio && !dados.dataInicio().isAfter(OffsetDateTime.now())) {
             throw new RequisicaoInvalidaException(
                     "A nova data de início deve ser futura"
             );
@@ -137,7 +117,7 @@ public class EventoService {
 
     @Transactional
     public void excluir(Long id) {
-        Evento evento = buscarComBloqueio(id);
+        Evento evento = buscarEntidade(id);
 
         // Usa o @OneToMany: qualquer inscrição, mesmo cancelada, impede a exclusão.
         if (!evento.getInscricoes().isEmpty()) {
@@ -150,14 +130,11 @@ public class EventoService {
         eventoRepository.flush();
     }
 
-    // Trava o evento até o fim da transação, para que alterações simultâneas não se sobreponham.
-    private Evento buscarComBloqueio(Long id) {
-        return eventoRepository.buscarPorIdComBloqueio(id)
-                .orElseThrow(() -> eventoNaoEncontrado(id));
-    }
-
-    private RecursoNaoEncontradoException eventoNaoEncontrado(Long id) {
-        return new RecursoNaoEncontradoException("Evento não encontrado com ID: " + id);
+    private Evento buscarEntidade(Long id) {
+        return eventoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Evento não encontrado com ID: " + id
+                ));
     }
 
     // A descrição é opcional: texto em branco é gravado como ausente.

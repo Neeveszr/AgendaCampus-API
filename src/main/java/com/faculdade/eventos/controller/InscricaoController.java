@@ -60,27 +60,21 @@ public class InscricaoController {
         return ResponseEntity.created(LocalizacaoRecurso.doId(salva.id())).body(salva);
     }
 
-    // GET /inscricoes?eventoId=&participanteId=&status=&page=&size=&sort=
+    // GET /inscricoes?eventoId=&status=&page=&size=&sort=
     // Lista as inscrições em páginas. Os filtros são opcionais e podem ser combinados.
     @Operation(
             summary = "Listar inscrições",
-            description = "Lista com paginação e filtros combináveis por eventoId, participanteId e status "
+            description = "Lista com paginação e filtros combináveis por eventoId e status "
                     + "(CONFIRMADA ou CANCELADA). Sem filtros, retorna todas as inscrições."
     )
     @ApiResponse(responseCode = "200", description = "Consulta realizada", useReturnTypeSchema = true)
     @GetMapping
     public ResponseEntity<PaginaResponse<InscricaoResponse>> listar(
             @RequestParam(required = false) Long eventoId,
-            @RequestParam(required = false) Long participanteId,
             @RequestParam(required = false) StatusInscricao status,
             @PageableDefault(size = 10, sort = "id") Pageable pageable
     ) {
-        return ResponseEntity.ok(inscricaoService.listar(
-                eventoId,
-                participanteId,
-                status,
-                pageable
-        ));
+        return ResponseEntity.ok(inscricaoService.listar(eventoId, status, pageable));
     }
 
     // GET /inscricoes/{id}
@@ -122,11 +116,11 @@ public class InscricaoController {
     }
 
     // DELETE /inscricoes/{id}
-    // Apaga uma inscrição que já está cancelada, antes do início do evento. Responde 204, sem corpo.
+    // Apaga uma inscrição que já está cancelada. Responde 204, sem corpo.
     @Operation(
             summary = "Excluir inscrição",
-            description = "Exclui fisicamente somente inscrições CANCELADAS e antes do início do evento. Para "
-                    + "preservar o histórico, prefira cancelar pela atualização de status."
+            description = "Exclui fisicamente somente inscrições CANCELADAS. Para preservar o histórico, "
+                    + "prefira cancelar pela atualização de status."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Inscrição excluída", content = @Content),

@@ -28,9 +28,9 @@ public class ParticipanteService {
             String email,
             Pageable pageable
     ) {
-        Page<Participante> participantes = participanteRepository.filtrar(
-                PadraoBusca.contendo(nome), PadraoBusca.contendo(email), pageable
-        );
+        // Filtro não informado chega como texto vazio, que aceita qualquer valor.
+        Page<Participante> participantes = participanteRepository
+                .findByNomeContainingIgnoreCaseAndEmailContainingIgnoreCase(nome.strip(), email.strip(), pageable);
 
         return PaginaResponse.de(participantes.map(ParticipanteResponse::de));
     }

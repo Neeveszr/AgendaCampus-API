@@ -5,8 +5,6 @@ import com.faculdade.eventos.model.Participante;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 public interface ParticipanteRepository
         extends JpaRepository<Participante, Long> {
@@ -15,15 +13,10 @@ public interface ParticipanteRepository
 
     boolean existsByEmailAndIdNot(String email, Long id);
 
-    // O e-mail já é gravado em minúsculas, então só o nome precisa de LOWER.
-    @Query("""
-            SELECT p FROM Participante p
-            WHERE LOWER(p.nome) LIKE :nome ESCAPE '!'
-              AND p.email LIKE :email ESCAPE '!'
-            """)
-    Page<Participante> filtrar(
-            @Param("nome") String nome,
-            @Param("email") String email,
+    // Busca por parte do nome e do e-mail; texto vazio aceita qualquer valor.
+    Page<Participante> findByNomeContainingIgnoreCaseAndEmailContainingIgnoreCase(
+            String nome,
+            String email,
             Pageable pageable
     );
 }

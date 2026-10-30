@@ -15,11 +15,9 @@ import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.OffsetDateTime;
 
 // Recebe as requisições HTTP de /eventos e repassa ao EventoService, onde ficam as regras de negócio.
 @RestController
@@ -58,44 +56,23 @@ public class EventoController {
         return ResponseEntity.created(LocalizacaoRecurso.doId(salvo.id())).body(salvo);
     }
 
-    // GET /eventos?nome=&local=&inicioDe=&inicioAte=&somenteDisponiveis=&page=&size=&sort=
-    // Lista os eventos em páginas. Todos os filtros são opcionais e podem ser combinados.
+    // GET /eventos?nome=&local=&page=&size=&sort=
+    // Lista os eventos em páginas. Os filtros são opcionais e podem ser combinados.
     @Operation(
             summary = "Listar eventos",
-            description = "Lista com paginação e filtros combináveis por nome e local parciais, sem distinção de "
-                    + "maiúsculas, e período de início inclusivo. somenteDisponiveis exige prazo aberto, "
-                    + "início futuro e vagas livres."
+            description = "Lista com paginação e filtros combináveis por parte do nome e do local, sem "
+                    + "distinção de maiúsculas e minúsculas."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta realizada", useReturnTypeSchema = true)
     })
     @GetMapping
     public ResponseEntity<PaginaResponse<EventoResponse>> listar(
-            @RequestParam(required = false) String nome,
-            @RequestParam(required = false) String local,
-
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            OffsetDateTime inicioDe,
-
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            OffsetDateTime inicioAte,
-
-            @RequestParam(defaultValue = "false")
-            boolean somenteDisponiveis,
-
-            @PageableDefault(size = 10, sort = "id")
-            Pageable pageable
+            @RequestParam(defaultValue = "") String nome,
+            @RequestParam(defaultValue = "") String local,
+            @PageableDefault(size = 10, sort = "id") Pageable pageable
     ) {
-        return ResponseEntity.ok(eventoService.listar(
-                nome,
-                local,
-                inicioDe,
-                inicioAte,
-                somenteDisponiveis,
-                pageable
-        ));
+        return ResponseEntity.ok(eventoService.listar(nome, local, pageable));
     }
 
     // GET /eventos/{id}
@@ -117,12 +94,12 @@ public class EventoController {
     }
 
     // PUT /eventos/{id}
-    // Substitui todos os dados do evento, respeitando as regras de datas e capacidade.
+    // Substitui todos os dados do evento, respeitando as regras de prazo e capacidade.
     @Operation(
             summary = "Atualizar evento",
             description = "Atualiza os dados completos do evento. A capacidade não pode ficar abaixo das "
-                    + "inscrições confirmadas. Após o início, as datas não podem mudar; antes do início, a "
-                    + "nova data deve ser futura. O prazo não pode ultrapassar o início."
+                    + "inscrições confirmadas, o prazo não pode ultrapassar o início e uma nova data de "
+                    + "início deve ser futura."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Evento atualizado", useReturnTypeSchema = true),

@@ -3,7 +3,6 @@ import { elemento, botao, link, linhaVazia, paginacao, parametros, statusInscric
 import { criarSeletor } from "./seletor.js";
 
 const filtroEvento = criarSeletor("filtro-evento", "eventos");
-const filtroParticipante = criarSeletor("filtro-participante", "participantes");
 const novoEvento = criarSeletor("novo-evento", "eventos", true);
 const novoParticipante = criarSeletor("novo-participante", "participantes", true);
 const filtrosForm = document.querySelector("#filtros");
@@ -112,14 +111,13 @@ filtrosForm.addEventListener("submit", e => {
     e.preventDefault();
     filtros = parametros(filtrosForm);
     if (filtroEvento.select.value) filtros.set("eventoId", filtroEvento.select.value);
-    if (filtroParticipante.select.value) filtros.set("participanteId", filtroParticipante.select.value);
     mensagem("");
     carregar();
 });
 filtrosForm.addEventListener("reset", () => {
     filtros = new URLSearchParams({ sort: "id,desc" });
     // Aguarda o reset nativo antes de recarregar as opções.
-    queueMicrotask(() => { filtroEvento.limpar(); filtroParticipante.limpar(); carregar(); });
+    queueMicrotask(() => { filtroEvento.limpar(); carregar(); });
 });
 async function iniciar() {
     try {

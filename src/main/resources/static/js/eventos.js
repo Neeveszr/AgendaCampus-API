@@ -59,14 +59,7 @@ async function carregar(pagina = 0) {
 
 formulario.addEventListener("submit", evento => {
     evento.preventDefault();
-    const novosFiltros = parametros(formulario);
-    if (novosFiltros.has("somenteDisponiveis")) novosFiltros.set("somenteDisponiveis", "true");
-    const inicio = novosFiltros.get("inicioDe");
-    const fim = novosFiltros.get("inicioAte");
-    if (inicio && fim && inicio > fim) return mensagem("A data inicial do filtro não pode ser posterior à final.", true);
-    if (inicio) novosFiltros.set("inicioDe", new Date(inicio + "T00:00:00").toISOString());
-    if (fim) novosFiltros.set("inicioAte", new Date(fim + "T23:59:59.999").toISOString());
-    filtros = novosFiltros;
+    filtros = parametros(formulario);
     mensagem("");
     carregar();
 });

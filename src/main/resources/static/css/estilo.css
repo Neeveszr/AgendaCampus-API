@@ -391,25 +391,13 @@ textarea {
     resize:vertical
 }
 
-input[type=checkbox] {
-    width:18px;
-    height:18px;
-    accent-color:var(--blue)
-}
-
-.checkbox {
-    flex-direction:row;
-    align-items:center;
-    gap:10px
-}
-
 .filters {
     padding:20px
 }
 
 .filter-grid {
     display:grid;
-    grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;
+    grid-template-columns:1.5fr 1fr 1fr;
     gap:14px
 }
 
@@ -427,10 +415,11 @@ input[type=checkbox] {
 
 .filter-actions>div {
     display:flex;
-    gap:8px
+    gap:8px;
+    margin-left:auto
 }
 
-.filter-actions>label:not(.checkbox) {
+.filter-actions>label {
     min-width:155px
 }
 
@@ -781,7 +770,7 @@ td small {
 
 .registration-filters {
     display:grid;
-    grid-template-columns:1fr 1fr .65fr;
+    grid-template-columns:1fr .65fr;
     gap:20px
 }
 
@@ -873,9 +862,6 @@ td small {
     .registration-filters {
         grid-template-columns:1fr 1fr
     }
-    .registration-filters>label {
-        grid-column:span 2
-    }
     .nav-inner {
         gap:36px
     }
@@ -945,9 +931,6 @@ td small {
     }
     .filter-actions>div {
         justify-content:flex-end
-    }
-    .checkbox {
-        font-size:12px
     }
     .form-footer {
         flex-wrap:wrap

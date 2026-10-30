@@ -26,11 +26,6 @@ async function iniciar() {
         // O navegador pode normalizar segundos :00 ao atribuir o valor.
         inicioExibido = campos.dataInicio.value;
         prazoExibido = campos.prazoInscricao.value;
-        if (new Date(original.dataInicio) <= new Date()) {
-            campos.dataInicio.readOnly = true;
-            campos.prazoInscricao.readOnly = true;
-            mensagem("O evento já começou. As datas não podem mais ser alteradas.");
-        }
         document.querySelector("#campos-evento").disabled = false;
     } catch (erro) {
         mensagem(erro.message, true);
