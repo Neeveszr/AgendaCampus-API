@@ -1,8 +1,10 @@
 package com.faculdade.eventos.service;
 
+import com.faculdade.eventos.dto.InscricaoRequest;
+import com.faculdade.eventos.dto.InscricaoResponse;
+import com.faculdade.eventos.dto.PaginaResponse;
 import com.faculdade.eventos.exception.ConflitoException;
 import com.faculdade.eventos.exception.RecursoNaoEncontradoException;
-import com.faculdade.eventos.exception.RequisicaoInvalidaException;
 import com.faculdade.eventos.model.Evento;
 import com.faculdade.eventos.model.Inscricao;
 import com.faculdade.eventos.model.Participante;
@@ -36,37 +38,29 @@ public class InscricaoService {
         this.participanteRepository = participanteRepository;
     }
 
-    public Page<Inscricao> listar(
+    public PaginaResponse<InscricaoResponse> listar(
             Long eventoId,
             Long participanteId,
             StatusInscricao status,
             Pageable pageable
     ) {
-        return inscricaoRepository.filtrar(eventoId, participanteId, status, pageable);
+        Page<Inscricao> inscricoes = inscricaoRepository.filtrar(eventoId, participanteId, status, pageable);
+
+        return PaginaResponse.de(inscricoes.map(InscricaoResponse::de));
     }
 
-    public Inscricao buscarPorId(Long id) {
-        return buscarEntidade(id);
+    public InscricaoResponse buscarPorId(Long id) {
+        return InscricaoResponse.de(buscarEntidade(id));
     }
 
     @Transactional
-    public Inscricao cadastrar(Inscricao dados) {
-        // O corpo traz apenas os IDs: { "evento": { "id": 1 }, "participante": { "id": 3 } }
-        Long eventoId = dados.getEvento() == null ? null : dados.getEvento().getId();
-        Long participanteId = dados.getParticipante() == null ? null : dados.getParticipante().getId();
-
-        if (eventoId == null || participanteId == null) {
-            throw new RequisicaoInvalidaException(
-                    "Informe o evento e o participante da inscrição"
-            );
-        }
-
-        Evento evento = eventoRepository.obterComBloqueio(eventoId);
+    public InscricaoResponse cadastrar(InscricaoRequest dados) {
+        Evento evento = buscarEventoComBloqueio(dados.eventoId());
 
         Participante participante = participanteRepository
-                .findById(participanteId)
+                .findById(dados.participanteId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException(
-                        "Participante não encontrado com ID: " + participanteId
+                        "Participante não encontrado com ID: " + dados.participanteId()
                 ));
 
         if (inscricaoRepository.existsByEventoIdAndParticipanteId(
@@ -82,22 +76,18 @@ public class InscricaoService {
         validarInscricaoAberta(evento);
         validarVagaDisponivel(evento);
 
-        // Cria uma inscrição nova: toda inscrição começa confirmada (o status enviado é ignorado).
-        Inscricao inscricao = new Inscricao();
-        inscricao.setEvento(evento);
-        inscricao.setParticipante(participante);
-        inscricao.setStatus(StatusInscricao.CONFIRMADA);
+        Inscricao inscricao = new Inscricao(evento, participante);
 
-        return inscricaoRepository.saveAndFlush(inscricao);
+        return InscricaoResponse.de(inscricaoRepository.saveAndFlush(inscricao));
     }
 
     @Transactional
-    public Inscricao atualizarStatus(Long id, StatusInscricao novoStatus) {
+    public InscricaoResponse atualizarStatus(Long id, StatusInscricao novoStatus) {
         Inscricao inscricao = buscarInscricaoParaAlteracao(id);
         Evento evento = inscricao.getEvento();
 
         if (inscricao.getStatus() == novoStatus) {
-            return inscricao;
+            return InscricaoResponse.de(inscricao);
         }
 
         if (novoStatus == StatusInscricao.CONFIRMADA) {
@@ -109,7 +99,7 @@ public class InscricaoService {
 
         inscricao.setStatus(novoStatus);
 
-        return inscricaoRepository.saveAndFlush(inscricao);
+        return InscricaoResponse.de(inscricaoRepository.saveAndFlush(inscricao));
     }
 
     @Transactional
@@ -142,9 +132,17 @@ public class InscricaoService {
                 ));
 
         // O evento deve ser bloqueado ANTES de ler o status da inscrição.
-        eventoRepository.obterComBloqueio(eventoId);
+        buscarEventoComBloqueio(eventoId);
 
         return buscarEntidade(id);
+    }
+
+    // Trava o evento até o fim da transação: inscrições simultâneas esperam e recontam as vagas.
+    private Evento buscarEventoComBloqueio(Long eventoId) {
+        return eventoRepository.buscarPorIdComBloqueio(eventoId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Evento não encontrado com ID: " + eventoId
+                ));
     }
 
     private void validarInscricaoAberta(Evento evento) {

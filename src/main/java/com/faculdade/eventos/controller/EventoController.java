@@ -1,6 +1,8 @@
 package com.faculdade.eventos.controller;
 
-import com.faculdade.eventos.model.Evento;
+import com.faculdade.eventos.dto.EventoRequest;
+import com.faculdade.eventos.dto.EventoResponse;
+import com.faculdade.eventos.dto.PaginaResponse;
 import com.faculdade.eventos.service.EventoService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,12 +13,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
@@ -50,12 +50,12 @@ public class EventoController {
             @ApiResponse(responseCode = "409", ref = "#/components/responses/Erro409")
     })
     @PostMapping
-    public ResponseEntity<Evento> cadastrar(
-            @Valid @RequestBody Evento evento
+    public ResponseEntity<EventoResponse> cadastrar(
+            @Valid @RequestBody EventoRequest evento
     ) {
-        Evento salvo = eventoService.cadastrar(evento);
+        EventoResponse salvo = eventoService.cadastrar(evento);
 
-        return ResponseEntity.created(LocalizacaoRecurso.doId(salvo.getId())).body(salvo);
+        return ResponseEntity.created(LocalizacaoRecurso.doId(salvo.id())).body(salvo);
     }
 
     // GET /eventos?nome=&local=&inicioDe=&inicioAte=&somenteDisponiveis=&page=&size=&sort=
@@ -70,7 +70,7 @@ public class EventoController {
             @ApiResponse(responseCode = "200", description = "Consulta realizada", useReturnTypeSchema = true)
     })
     @GetMapping
-    public Page<Evento> listar(
+    public ResponseEntity<PaginaResponse<EventoResponse>> listar(
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String local,
 
@@ -88,14 +88,14 @@ public class EventoController {
             @PageableDefault(size = 10, sort = "id")
             Pageable pageable
     ) {
-        return eventoService.listar(
+        return ResponseEntity.ok(eventoService.listar(
                 nome,
                 local,
                 inicioDe,
                 inicioAte,
                 somenteDisponiveis,
                 pageable
-        );
+        ));
     }
 
     // GET /eventos/{id}
@@ -110,10 +110,10 @@ public class EventoController {
             @ApiResponse(responseCode = "404", ref = "#/components/responses/Erro404")
     })
     @GetMapping("/{id}")
-    public Evento buscarPorId(
+    public ResponseEntity<EventoResponse> buscarPorId(
             @PathVariable Long id
     ) {
-        return eventoService.buscarPorId(id);
+        return ResponseEntity.ok(eventoService.buscarPorId(id));
     }
 
     // PUT /eventos/{id}
@@ -130,11 +130,11 @@ public class EventoController {
             @ApiResponse(responseCode = "409", ref = "#/components/responses/Erro409")
     })
     @PutMapping("/{id}")
-    public Evento atualizar(
+    public ResponseEntity<EventoResponse> atualizar(
             @PathVariable Long id,
-            @Valid @RequestBody Evento evento
+            @Valid @RequestBody EventoRequest evento
     ) {
-        return eventoService.atualizar(id, evento);
+        return ResponseEntity.ok(eventoService.atualizar(id, evento));
     }
 
     // DELETE /eventos/{id}
@@ -149,8 +149,9 @@ public class EventoController {
             @ApiResponse(responseCode = "409", ref = "#/components/responses/Erro409")
     })
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void excluir(@PathVariable Long id) {
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
         eventoService.excluir(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

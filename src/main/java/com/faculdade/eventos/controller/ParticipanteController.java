@@ -1,6 +1,8 @@
 package com.faculdade.eventos.controller;
 
-import com.faculdade.eventos.model.Participante;
+import com.faculdade.eventos.dto.ParticipanteRequest;
+import com.faculdade.eventos.dto.ParticipanteResponse;
+import com.faculdade.eventos.dto.PaginaResponse;
 import com.faculdade.eventos.service.ParticipanteService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,11 +13,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 // Recebe as requisições HTTP de /participantes e repassa ao ParticipanteService, onde ficam as regras de negócio.
@@ -47,12 +47,12 @@ public class ParticipanteController {
             @ApiResponse(responseCode = "409", ref = "#/components/responses/Erro409")
     })
     @PostMapping
-    public ResponseEntity<Participante> cadastrar(
-            @Valid @RequestBody Participante participante
+    public ResponseEntity<ParticipanteResponse> cadastrar(
+            @Valid @RequestBody ParticipanteRequest participante
     ) {
-        Participante salvo = participanteService.cadastrar(participante);
+        ParticipanteResponse salvo = participanteService.cadastrar(participante);
 
-        return ResponseEntity.created(LocalizacaoRecurso.doId(salvo.getId())).body(salvo);
+        return ResponseEntity.created(LocalizacaoRecurso.doId(salvo.id())).body(salvo);
     }
 
     // GET /participantes?nome=&email=&page=&size=&sort=
@@ -65,12 +65,12 @@ public class ParticipanteController {
     )
     @ApiResponse(responseCode = "200", description = "Consulta realizada", useReturnTypeSchema = true)
     @GetMapping
-    public Page<Participante> listar(
+    public ResponseEntity<PaginaResponse<ParticipanteResponse>> listar(
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String email,
             @PageableDefault(size = 10, sort = "id") Pageable pageable
     ) {
-        return participanteService.listar(nome, email, pageable);
+        return ResponseEntity.ok(participanteService.listar(nome, email, pageable));
     }
 
     // GET /participantes/{id}
@@ -81,10 +81,10 @@ public class ParticipanteController {
             @ApiResponse(responseCode = "404", ref = "#/components/responses/Erro404")
     })
     @GetMapping("/{id}")
-    public Participante buscarPorId(
+    public ResponseEntity<ParticipanteResponse> buscarPorId(
             @PathVariable Long id
     ) {
-        return participanteService.buscarPorId(id);
+        return ResponseEntity.ok(participanteService.buscarPorId(id));
     }
 
     // PUT /participantes/{id}
@@ -99,11 +99,11 @@ public class ParticipanteController {
             @ApiResponse(responseCode = "409", ref = "#/components/responses/Erro409")
     })
     @PutMapping("/{id}")
-    public Participante atualizar(
+    public ResponseEntity<ParticipanteResponse> atualizar(
             @PathVariable Long id,
-            @Valid @RequestBody Participante participante
+            @Valid @RequestBody ParticipanteRequest participante
     ) {
-        return participanteService.atualizar(id, participante);
+        return ResponseEntity.ok(participanteService.atualizar(id, participante));
     }
 
     // DELETE /participantes/{id}
@@ -119,8 +119,9 @@ public class ParticipanteController {
             @ApiResponse(responseCode = "409", ref = "#/components/responses/Erro409")
     })
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void excluir(@PathVariable Long id) {
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
         participanteService.excluir(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

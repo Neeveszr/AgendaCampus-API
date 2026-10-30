@@ -36,14 +36,16 @@ inscrições, com controle de vagas e prazos de inscrição.
 
 | Requisito | Como o projeto atende |
 |---|---|
-| API REST com Spring Boot | Spring Boot 4.1, com controllers REST para os três recursos |
-| Mínimo de 2 tabelas relacionadas | 3 tabelas: `eventos` e `participantes`, ligadas por `inscricoes` em um relacionamento N:N ([diagrama](#diagrama-do-banco-de-dados)) |
-| CRUD completo | Criar, listar, buscar por ID, atualizar e excluir em eventos, participantes e inscrições ([endpoints](#endpoints)) |
-| Filtragem de dados | Filtros combináveis nas três listagens, com paginação e ordenação ([filtros](#filtros-paginação-e-ordenação)) |
-| Regras de negócio com maior complexidade | Controle de vagas, prazos, cancelamento e reativação, datas bloqueadas após o início e proteção contra inscrições simultâneas ([regras](#regras-de-negócio)) |
-| Status HTTP e exceções | Códigos adequados para cada situação e erros tratados em um único ponto, no padrão ProblemDetail ([status e erros](#status-http-e-tratamento-de-erros)) |
-| Documentação com Swagger | springdoc-openapi, com descrição e possíveis erros de cada endpoint em `/swagger-ui/index.html` |
-| **Ponto extra:** telas conectadas ao backend | Interface web em HTML, CSS e JavaScript que consome a API ([prints](#prints)) |
+| 2.1 Estrutura e organização | Java 25 e Spring Boot 4.1, em camadas `controller`, `service` e `repository`, com Spring Data JPA e PostgreSQL ([arquitetura](#arquitetura-e-estrutura)) |
+| 2.1 Entidades relacionadas com `@OneToMany` e `@ManyToOne` | 3 tabelas: `eventos` e `participantes`, ligadas por `inscricoes` (N:N). `Inscricao` tem `@ManyToOne` para `Evento` e `Participante`, que têm o `@OneToMany(mappedBy)` de volta ([diagrama](#diagrama-do-banco-de-dados)) |
+| 2.2 CRUD completo | Criar, listar, buscar por ID, atualizar e excluir em eventos, participantes e inscrições ([endpoints](#endpoints)) |
+| 2.3 DTOs | Pacote `dto`: records `...Request` recebem e validam os dados, records `...Response` são devolvidos pela API, e `PaginaResponse` representa as listagens paginadas. A conversão é manual: o service cria a entidade a partir do Request, e os métodos `Response.de(entidade)` fazem o caminho inverso. Nenhuma entidade JPA nem objeto interno do Spring é exposto |
+| 2.4 `ResponseEntity` e status HTTP | Todos os métodos dos controllers devolvem `ResponseEntity`: `200`, `201` com `Location`, `204`, e `400`/`404`/`409` pelo tratamento de erros ([status e erros](#status-http-e-tratamento-de-erros)) |
+| 2.5 Validação e exceções | `@NotBlank`, `@NotNull`, `@Size`, `@Email` e `@Min` nos DTOs; erros tratados em um único ponto com `@RestControllerAdvice` (um `@ControllerAdvice`) e `@ExceptionHandler`, no padrão ProblemDetail |
+| 2.6 Filtragem de dados | Filtros combináveis por URL nas três listagens: texto, período de datas, status e disponibilidade ([filtros](#filtros-paginação-e-ordenação)) |
+| 2.7 Regras de negócio | Controle de vagas, prazos, e-mail e inscrição únicos, bloqueio de exclusão com vínculos, cancelamento e reativação, datas travadas após o início, vagas calculadas e proteção contra inscrições simultâneas, todas na camada de service ([regras](#regras-de-negócio)) |
+| 2.8 Swagger | springdoc-openapi, com descrição, parâmetros, respostas e possíveis erros de cada endpoint em `/swagger-ui/index.html` |
+| **Extra:** telas conectadas ao backend | Interface web em HTML, CSS e JavaScript que consome a API ([prints](#prints)) |
 
 ## Vídeo de demonstração
 
@@ -149,10 +151,11 @@ agenda-campus/
 └── src/
     └── main/
         ├── java/com/faculdade/eventos/
-        │   ├── controller/   endpoints REST
-        │   ├── service/      regras de negócio
+        │   ├── controller/   endpoints REST, sempre com ResponseEntity
+        │   ├── dto/          dados recebidos (Request, com validações) e devolvidos (Response)
+        │   ├── service/      regras de negócio e conversão entre DTOs e entidades
         │   ├── repository/   acesso ao banco e consultas dos filtros
-        │   ├── model/        entidades JPA, com as validações dos dados recebidos
+        │   ├── model/        entidades JPA e seus relacionamentos
         │   ├── exception/    tratamento centralizado de erros
         │   └── config/       documentação do Swagger
         └── resources/
@@ -165,8 +168,9 @@ Fluxo de uma requisição:
 
 ```mermaid
 flowchart LR
-    C[Cliente / Interface web] --> CT[Controller<br/>valida o JSON recebido]
-    CT --> S[Service<br/>regras de negócio]
+    C[Cliente / Interface web] -- JSON --> CT[Controller<br/>valida o DTO recebido]
+    CT -- Request DTO --> S[Service<br/>regras de negócio]
+    S -- Response DTO --> CT
     S --> R[Repository<br/>JPA]
     R --> DB[(PostgreSQL)]
     S -. exceções .-> H[ApiExceptionHandler<br/>ProblemDetail]
@@ -209,7 +213,10 @@ erDiagram
 ```
 
 `INSCRICOES` é a tabela associativa do relacionamento N:N entre eventos e
-participantes.
+participantes. No código, `Inscricao` mapeia as chaves estrangeiras com
+`@ManyToOne`, e `Evento` e `Participante` têm a lista de inscrições com
+`@OneToMany(mappedBy = ...)`, usada para impedir a exclusão de registros com
+inscrições vinculadas.
 
 ## Endpoints
 
@@ -250,7 +257,7 @@ Corpo das requisições de inscrição:
 
 ```jsonc
 // POST /inscricoes
-{ "evento": { "id": 1 }, "participante": { "id": 3 } }
+{ "eventoId": 1, "participanteId": 3 }
 
 // PUT /inscricoes/{id}  (CANCELADA para cancelar, CONFIRMADA para reativar)
 { "status": "CANCELADA" }
@@ -289,7 +296,8 @@ GET /inscricoes?eventoId=1&status=CONFIRMADA
 | `409 Conflict` | Violação de regra de negócio: evento lotado, prazo encerrado, inscrição ou e-mail duplicados, exclusão com vínculos |
 | `500 Internal Server Error` | Erro inesperado, com mensagem genérica, sem expor detalhes internos |
 
-As exceções são tratadas em um único ponto, o `ApiExceptionHandler`, e todos os
+As exceções são tratadas em um único ponto, o `ApiExceptionHandler`
+(`@RestControllerAdvice` com um `@ExceptionHandler` para cada tipo de erro), e todos os
 erros seguem o padrão ProblemDetail (RFC 9457), com mensagens em português:
 
 ```json

@@ -40,10 +40,6 @@ public interface InscricaoRepository
             StatusInscricao status
     );
 
-    boolean existsByEventoId(Long eventoId);
-
-    boolean existsByParticipanteId(Long participanteId);
-
     @Query("SELECT i.evento.id FROM Inscricao i WHERE i.id = :id")
     Optional<Long> buscarEventoIdPorInscricaoId(@Param("id") Long id);
 }

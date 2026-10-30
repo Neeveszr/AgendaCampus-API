@@ -1,6 +1,9 @@
 package com.faculdade.eventos.controller;
 
-import com.faculdade.eventos.model.Inscricao;
+import com.faculdade.eventos.dto.InscricaoRequest;
+import com.faculdade.eventos.dto.InscricaoResponse;
+import com.faculdade.eventos.dto.InscricaoStatusRequest;
+import com.faculdade.eventos.dto.PaginaResponse;
 import com.faculdade.eventos.model.StatusInscricao;
 import com.faculdade.eventos.service.InscricaoService;
 
@@ -12,11 +15,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 // Recebe as requisições HTTP de /inscricoes e repassa ao InscricaoService, onde ficam as regras de vagas e prazos.
@@ -40,7 +41,7 @@ public class InscricaoController {
     // Inscreve um participante em um evento. O corpo traz só os IDs; a inscrição sempre nasce CONFIRMADA.
     @Operation(
             summary = "Criar inscrição",
-            description = "Cria uma inscrição CONFIRMADA. Corpo: { \"evento\": { \"id\": 1 }, \"participante\": { \"id\": 3 } }. "
+            description = "Cria uma inscrição CONFIRMADA. Corpo: { \"eventoId\": 1, \"participanteId\": 3 }. "
                     + "O evento e o participante devem existir; a inscrição exige prazo aberto, evento não iniciado e "
                     + "vaga disponível. Não permite duplicidade, mesmo se a inscrição "
                     + "anterior estiver cancelada; nesse caso, use a atualização de status."
@@ -51,12 +52,12 @@ public class InscricaoController {
             @ApiResponse(responseCode = "409", ref = "#/components/responses/Erro409")
     })
     @PostMapping
-    public ResponseEntity<Inscricao> cadastrar(
-            @RequestBody Inscricao inscricao
+    public ResponseEntity<InscricaoResponse> cadastrar(
+            @Valid @RequestBody InscricaoRequest inscricao
     ) {
-        Inscricao salva = inscricaoService.cadastrar(inscricao);
+        InscricaoResponse salva = inscricaoService.cadastrar(inscricao);
 
-        return ResponseEntity.created(LocalizacaoRecurso.doId(salva.getId())).body(salva);
+        return ResponseEntity.created(LocalizacaoRecurso.doId(salva.id())).body(salva);
     }
 
     // GET /inscricoes?eventoId=&participanteId=&status=&page=&size=&sort=
@@ -68,18 +69,18 @@ public class InscricaoController {
     )
     @ApiResponse(responseCode = "200", description = "Consulta realizada", useReturnTypeSchema = true)
     @GetMapping
-    public Page<Inscricao> listar(
+    public ResponseEntity<PaginaResponse<InscricaoResponse>> listar(
             @RequestParam(required = false) Long eventoId,
             @RequestParam(required = false) Long participanteId,
             @RequestParam(required = false) StatusInscricao status,
             @PageableDefault(size = 10, sort = "id") Pageable pageable
     ) {
-        return inscricaoService.listar(
+        return ResponseEntity.ok(inscricaoService.listar(
                 eventoId,
                 participanteId,
                 status,
                 pageable
-        );
+        ));
     }
 
     // GET /inscricoes/{id}
@@ -93,10 +94,10 @@ public class InscricaoController {
             @ApiResponse(responseCode = "404", ref = "#/components/responses/Erro404")
     })
     @GetMapping("/{id}")
-    public Inscricao buscarPorId(
+    public ResponseEntity<InscricaoResponse> buscarPorId(
             @PathVariable Long id
     ) {
-        return inscricaoService.buscarPorId(id);
+        return ResponseEntity.ok(inscricaoService.buscarPorId(id));
     }
 
     // PUT /inscricoes/{id}
@@ -113,11 +114,11 @@ public class InscricaoController {
             @ApiResponse(responseCode = "409", ref = "#/components/responses/Erro409")
     })
     @PutMapping("/{id}")
-    public Inscricao atualizarStatus(
+    public ResponseEntity<InscricaoResponse> atualizarStatus(
             @PathVariable Long id,
-            @Valid @RequestBody Inscricao dados
+            @Valid @RequestBody InscricaoStatusRequest dados
     ) {
-        return inscricaoService.atualizarStatus(id, dados.getStatus());
+        return ResponseEntity.ok(inscricaoService.atualizarStatus(id, dados.status()));
     }
 
     // DELETE /inscricoes/{id}
@@ -133,8 +134,9 @@ public class InscricaoController {
             @ApiResponse(responseCode = "409", ref = "#/components/responses/Erro409")
     })
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void excluir(@PathVariable Long id) {
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
         inscricaoService.excluir(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

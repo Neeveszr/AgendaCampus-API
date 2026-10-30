@@ -1,9 +1,11 @@
 package com.faculdade.eventos.service;
 
+import com.faculdade.eventos.dto.PaginaResponse;
+import com.faculdade.eventos.dto.ParticipanteRequest;
+import com.faculdade.eventos.dto.ParticipanteResponse;
 import com.faculdade.eventos.exception.ConflitoException;
 import com.faculdade.eventos.exception.RecursoNaoEncontradoException;
 import com.faculdade.eventos.model.Participante;
-import com.faculdade.eventos.repository.InscricaoRepository;
 import com.faculdade.eventos.repository.ParticipanteRepository;
 
 import org.springframework.data.domain.Page;
@@ -16,70 +18,65 @@ import org.springframework.transaction.annotation.Transactional;
 public class ParticipanteService {
 
     private final ParticipanteRepository participanteRepository;
-    private final InscricaoRepository inscricaoRepository;
 
-    public ParticipanteService(
-            ParticipanteRepository participanteRepository,
-            InscricaoRepository inscricaoRepository
-    ) {
+    public ParticipanteService(ParticipanteRepository participanteRepository) {
         this.participanteRepository = participanteRepository;
-        this.inscricaoRepository = inscricaoRepository;
     }
 
-    public Page<Participante> listar(
+    public PaginaResponse<ParticipanteResponse> listar(
             String nome,
             String email,
             Pageable pageable
     ) {
-        return participanteRepository.filtrar(
+        Page<Participante> participantes = participanteRepository.filtrar(
                 PadraoBusca.contendo(nome), PadraoBusca.contendo(email), pageable
         );
+
+        return PaginaResponse.de(participantes.map(ParticipanteResponse::de));
     }
 
-    public Participante buscarPorId(Long id) {
-        return buscarEntidade(id);
+    public ParticipanteResponse buscarPorId(Long id) {
+        return ParticipanteResponse.de(buscarEntidade(id));
     }
 
     @Transactional
-    public Participante cadastrar(Participante dados) {
-        String email = dados.getEmail();
-
-        if (participanteRepository.existsByEmail(email)) {
+    public ParticipanteResponse cadastrar(ParticipanteRequest dados) {
+        // O e-mail já chega normalizado pelo ParticipanteRequest.
+        if (participanteRepository.existsByEmail(dados.email())) {
             throw new ConflitoException("Já existe um participante com esse e-mail");
         }
 
-        // Cria um participante novo só com nome e e-mail (id e data de criação são ignorados).
         Participante participante = new Participante(
-                dados.getNome().strip(),
-                email
+                dados.nome().strip(),
+                dados.email()
         );
 
-        return participanteRepository.saveAndFlush(participante);
+        return ParticipanteResponse.de(participanteRepository.saveAndFlush(participante));
     }
 
     @Transactional
-    public Participante atualizar(
+    public ParticipanteResponse atualizar(
             Long id,
-            Participante dados
+            ParticipanteRequest dados
     ) {
         Participante participante = buscarEntidade(id);
-        String email = dados.getEmail();
 
-        if (participanteRepository.existsByEmailAndIdNot(email, id)) {
+        if (participanteRepository.existsByEmailAndIdNot(dados.email(), id)) {
             throw new ConflitoException("Já existe um participante com esse e-mail");
         }
 
-        participante.setNome(dados.getNome().strip());
-        participante.setEmail(email);
+        participante.setNome(dados.nome().strip());
+        participante.setEmail(dados.email());
 
-        return participanteRepository.saveAndFlush(participante);
+        return ParticipanteResponse.de(participanteRepository.saveAndFlush(participante));
     }
 
     @Transactional
     public void excluir(Long id) {
         Participante participante = buscarEntidade(id);
 
-        if (inscricaoRepository.existsByParticipanteId(id)) {
+        // Usa o @OneToMany: qualquer inscrição, mesmo cancelada, impede a exclusão.
+        if (!participante.getInscricoes().isEmpty()) {
             throw new ConflitoException(
                     "Não é possível excluir um participante com inscrições vinculadas"
             );

@@ -63,7 +63,7 @@ form.addEventListener("submit", e => {
     e.preventDefault();
     executar(form.querySelector("button[type=submit]"), async () => {
         if (!participante.select.value) throw new Error("Selecione um participante.");
-        await requisicao("/inscricoes", "POST", { evento: { id: Number(id) }, participante: { id: Number(participante.select.value) } });
+        await requisicao("/inscricoes", "POST", { eventoId: Number(id), participanteId: Number(participante.select.value) });
         mensagem("Inscrição confirmada com sucesso.");
         participante.select.value = "";
         await carregarEvento();

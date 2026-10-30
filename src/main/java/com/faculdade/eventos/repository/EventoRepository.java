@@ -1,6 +1,5 @@
 package com.faculdade.eventos.repository;
 
-import com.faculdade.eventos.exception.RecursoNaoEncontradoException;
 import com.faculdade.eventos.model.Evento;
 import com.faculdade.eventos.model.StatusInscricao;
 
@@ -48,11 +47,4 @@ public interface EventoRepository
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM Evento e WHERE e.id = :id")
     Optional<Evento> buscarPorIdComBloqueio(@Param("id") Long id);
-
-    default Evento obterComBloqueio(Long id) {
-        return buscarPorIdComBloqueio(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException(
-                        "Evento não encontrado com ID: " + id
-                ));
-    }
 }

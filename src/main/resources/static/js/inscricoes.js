@@ -99,8 +99,8 @@ form.addEventListener("submit", e => {
     executar(form.querySelector("button[type=submit]"), async () => {
         if (!novoEvento.select.value || !novoParticipante.select.value) throw new Error("Selecione o evento e o participante.");
         await requisicao("/inscricoes", "POST", {
-            evento: { id: Number(novoEvento.select.value) },
-            participante: { id: Number(novoParticipante.select.value) }
+            eventoId: Number(novoEvento.select.value),
+            participanteId: Number(novoParticipante.select.value)
         });
         mensagem("Inscrição confirmada com sucesso.");
         novoParticipante.select.value = "";
