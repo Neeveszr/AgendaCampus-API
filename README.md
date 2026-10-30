@@ -164,19 +164,6 @@ agenda-campus/
             └── static/       interface web (HTML, CSS, JS)
 ```
 
-Fluxo de uma requisição:
-
-```mermaid
-flowchart LR
-    C[Cliente / Interface web] -- JSON --> CT[Controller<br/>valida o DTO recebido]
-    CT -- Request DTO --> S[Service<br/>regras de negócio]
-    S -- Response DTO --> CT
-    S --> R[Repository<br/>JPA]
-    R --> DB[(PostgreSQL)]
-    S -. exceções .-> H[ApiExceptionHandler<br/>ProblemDetail]
-    H -.-> C
-```
-
 ## Diagrama do banco de dados
 
 ```mermaid
